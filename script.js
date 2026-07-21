@@ -1,120 +1,122 @@
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTR8KKM9-eODPVkTWUsCbdSL68muApoFTps4foJFFoiTHI5mNdwDVwV1foA5J9QkZR7GKftqZQfYs5w/pub?output=csv";
-
-// Robust CSV parser (handles quotes, commas, newlines)
-function parseCSV(strData, strDelimiter = ",") {
-    const objPattern = new RegExp(
-        (
-            // Delimiters
-            "(\\"
-            + strDelimiter
-            + "|\\r?\\n|\\r|^)"
-            +
-            // Quoted fields
-            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|"
-            +
-            // Standard fields
-            "([^\"\\"
-            + strDelimiter
-            + "\\r\\n]*))"
-        ),
-        "gi"
-    );
-
-    const arrData = [[]];
-    let arrMatches = null;
-
-    while ((arrMatches = objPattern.exec(strData))) {
-        const strMatchedDelimiter = arrMatches[1];
-
-        if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
-            arrData.push([]);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
         }
 
-        let strMatchedValue;
-        if (arrMatches[2]) {
-            strMatchedValue = arrMatches[2].replace(/\"\"/g, "\"");
-        } else {
-            strMatchedValue = arrMatches[3];
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        arrData[arrData.length - 1].push(strMatchedValue);
-    }
-
-    return arrData;
-}
-
-async function loadSheet() {
-    const response = await fetch(sheetURL);
-    const data = await response.text();
-    return parseCSV(data);
-}
-
-function normalizeHyphens(str) {
-    if (!str) return "";
-    return str.replace(/–|—/g, "-").trim();
-}
-
-function getQueryParam() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("cert");
-}
-
-function showModal(details) {
-    document.getElementById("modalTitle").innerText = "Certificate Details";
-
-    document.getElementById("certno").innerText = details.certno;
-    document.getElementById("company").innerText = details.company;
-    document.getElementById("course").innerText = details.course;
-    document.getElementById("coursedate").innerText = details.coursedate;
-    document.getElementById("expiry").innerText = details.expiry;
-
-    document.getElementById("resultModal").style.display = "block";
-}
-
-function closeModal() {
-    document.getElementById("resultModal").style.display = "none";
-}
-
-async function verifyCert() {
-    const certNo = normalizeHyphens(document.getElementById("certInput").value.trim());
-    const rows = await loadSheet();
-    const headers = rows[0];
-
-    const certIndex = headers.indexOf("Certificate NO.");
-    const companyIndex = headers.indexOf("Company");
-    const courseIndex = headers.indexOf("Course Title");
-    const courseDateIndex = headers.indexOf("Course Date");
-    const expiryIndex = headers.indexOf("Expiry Date");
-
-    if (certIndex === -1 || companyIndex === -1 || courseIndex === -1 ||
-        courseDateIndex === -1 || expiryIndex === -1) {
-        alert("Column headers not found. Please check the CSV structure.");
-        return;
-    }
-
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const sheetCert = normalizeHyphens(row[certIndex]);
-
-        if (sheetCert === certNo) {
-            showModal({
-                certno: row[certIndex],
-                company: row[companyIndex],
-                course: row[courseIndex],
-                coursedate: row[courseDateIndex],
-                expiry: row[expiryIndex]
-            });
-            return;
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
         }
-    }
 
-    alert("Certificate not found.");
-}
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
 
-window.onload = async () => {
-    const certParam = getQueryParam();
-    if (certParam) {
-        document.getElementById("certInput").value = certParam;
-        verifyCert();
-    }
-};
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Modal */
+        #resultModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 450px;
+            margin: 80px auto;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .close-btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .close-btn:hover {
+            background: #b52a36;
+        }
+
+        .detail {
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Certificate Verification</h2>
+
+    <input id="certInput" type="text" placeholder="Enter Certificate Number">
+    <button onclick="verifyCert()">Verify</button>
+</div>
+
+<!-- Modal -->
+<div id="resultModal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Certificate Details</h2>
+
+        <div class="detail"><span class="label">Certificate No:</span> <span id="certno"></span></div>
+        <div class="detail"><span class="label">Company:</span> <span id="company"></span></div>
+        <div class="detail"><span class="label">Course Title:</span> <span id="course"></span></div>
+        <div class="detail"><span class="label">Course Date:</span> <span id="coursedate"></span></div>
+        <div class="detail"><span class="label">Expiry Date:</span> <span id="expiry"></span></div>
+
+        <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
