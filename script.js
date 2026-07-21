@@ -97,3 +97,14 @@ async function verifyCert() {
 
     alert("Certificate not found.");
 }
+
+// QR auto-lookup: ?cert=MT-2025-2952-14
+window.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const certParam = params.get("cert");
+
+    if (certParam) {
+        document.getElementById("certInput").value = certParam;
+        verifyCert();
+    }
+});
