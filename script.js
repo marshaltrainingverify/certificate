@@ -47,9 +47,8 @@ function normalizeHyphens(str) {
 }
 
 function showModal(details) {
-    document.getElementById("modalTitle").innerText = "Certificate Details";
-
     document.getElementById("certno").innerText = details.certno;
+    document.getElementById("participant").innerText = details.participant;
     document.getElementById("company").innerText = details.company;
     document.getElementById("course").innerText = details.course;
     document.getElementById("coursedate").innerText = details.coursedate;
@@ -73,16 +72,11 @@ async function verifyCert() {
     const headers = rows[0];
 
     const certIndex = headers.indexOf("Certificate NO.");
+    const participantIndex = headers.indexOf("Participant Name");
     const companyIndex = headers.indexOf("Company");
     const courseIndex = headers.indexOf("Course Title");
     const courseDateIndex = headers.indexOf("Course Date");
     const expiryIndex = headers.indexOf("Expiry Date");
-
-    if (certIndex === -1 || companyIndex === -1 || courseIndex === -1 ||
-        courseDateIndex === -1 || expiryIndex === -1) {
-        alert("Column headers not found. Please check the CSV structure.");
-        return;
-    }
 
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
@@ -91,6 +85,7 @@ async function verifyCert() {
         if (sheetCert === certNo) {
             showModal({
                 certno: row[certIndex],
+                participant: row[participantIndex],
                 company: row[companyIndex],
                 course: row[courseIndex],
                 coursedate: row[courseDateIndex],
@@ -102,14 +97,3 @@ async function verifyCert() {
 
     alert("Certificate not found.");
 }
-
-// Optional: auto-verify via URL parameter ?cert=XXXX
-(function () {
-    const params = new URLSearchParams(window.location.search);
-    const certParam = params.get("cert");
-
-    if (certParam) {
-        document.getElementById("certInput").value = certParam;
-        verifyCert();
-    }
-})();
