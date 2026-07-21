@@ -23,11 +23,11 @@ function normalizeHyphens(str) {
 
 function showModal(details) {
     document.getElementById("modalTitle").innerText = "Certificate Verified";
-    document.getElementById("name").innerText = details.name;
-    document.getElementById("course").innerText = details.course;
-    document.getElementById("start").innerText = details.start;
-    document.getElementById("end").innerText = details.end;
-    document.getElementById("issue").innerText = details.issue;
+    document.getElementById("Participant Name").innerText = details.name;
+    document.getElementById("Course Title").innerText = details.course;
+    document.getElementById("Course Date").innerText = details.start;
+    document.getElementById("Expiry Date").innerText = details.end;
+    document.getElementById("Course Date").innerText = details.issue;
     document.getElementById("validity").innerText = details.validity;
 
     document.getElementById("resultModal").style.display = "block";
@@ -45,7 +45,7 @@ async function verifyCert() {
     const headers = rows[0];
 
     // Find column indexes
-    const certIndex = headers.findIndex(h => h.trim().toLowerCase() === "certificate no.");
+    const certIndex = headers.findIndex(h => h.trim().toLowerCase() === "Certificate NO.");
     const nameIndex = headers.indexOf("Participant Name");
     const courseIndex = headers.indexOf("Course Title");
     const startIndex = headers.indexOf("Course Date");
