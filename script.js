@@ -12,6 +12,15 @@ function getQueryParam() {
     return params.get("cert");
 }
 
+function normalizeHyphens(str) {
+    if (!str) return "";
+    return str
+        .replace(/–/g, "-")   // EN DASH → hyphen
+        .replace(/—/g, "-")   // EM DASH → hyphen
+        .replace(/\s+/g, "")  // remove spaces
+        .trim();
+}
+
 function showModal(details) {
     document.getElementById("modalTitle").innerText = "Certificate Verified";
     document.getElementById("name").innerText = details.name;
@@ -29,19 +38,31 @@ function closeModal() {
 }
 
 async function verifyCert() {
-    const certNo = document.getElementById("certInput").value.trim();
-    const rows = await loadSheet();
+    const certNoRaw = document.getElementById("certInput").value.trim();
+    const certNo = normalizeHyphens(certNoRaw);
 
+    const rows = await loadSheet();
     const headers = rows[0];
-    const certIndex = headers.indexOf("Certificate NO.");
+
+    // Find column indexes
+    const certIndex = headers.findIndex(h => h.trim().toLowerCase() === "certificate no.");
     const nameIndex = headers.indexOf("Name");
     const courseIndex = headers.indexOf("Course");
     const startIndex = headers.indexOf("Start Date");
     const endIndex = headers.indexOf("Expiry Date");
     const issueIndex = headers.indexOf("Issue Date");
 
+    if (certIndex === -1) {
+        alert("Certificate column not found in CSV.");
+        return;
+    }
+
+    // Loop through rows
     for (let i = 1; i < rows.length; i++) {
-        if (rows[i][certIndex] === certNo) {
+        let sheetCertRaw = rows[i][certIndex];
+        let sheetCert = normalizeHyphens(sheetCertRaw);
+
+        if (sheetCert === certNo) {
             const expiry = new Date(rows[i][endIndex]);
             const today = new Date();
             const validity = today <= expiry ? "Valid" : "Expired";
