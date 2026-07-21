@@ -46,9 +46,9 @@ async function verifyCert() {
 
     // Find column indexes
     const certIndex = headers.findIndex(h => h.trim().toLowerCase() === "certificate no.");
-    const nameIndex = headers.indexOf("Name");
-    const courseIndex = headers.indexOf("Course");
-    const startIndex = headers.indexOf("Start Date");
+    const nameIndex = headers.indexOf("Participant Name");
+    const courseIndex = headers.indexOf("Course Title");
+    const startIndex = headers.indexOf("Course Date");
     const endIndex = headers.indexOf("Expiry Date");
     const issueIndex = headers.indexOf("Issue Date");
 
@@ -79,7 +79,7 @@ async function verifyCert() {
         }
     }
 
-    alert("Certificate not found.");
+    alert("Certificate not found. Contact Marshal Training for more information. +971 4 330 2324, inqquiry@marshaltraining.com");
 }
 
 window.onload = async () => {
