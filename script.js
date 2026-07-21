@@ -33,7 +33,7 @@ async function verifyCert() {
     const rows = await loadSheet();
 
     const headers = rows[0];
-    const certIndex = headers.indexOf("Certificate Number");
+    const certIndex = headers.indexOf("Certificate NO.");
     const nameIndex = headers.indexOf("Name");
     const courseIndex = headers.indexOf("Course");
     const startIndex = headers.indexOf("Start Date");
