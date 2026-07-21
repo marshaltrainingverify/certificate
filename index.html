@@ -1,99 +1,133 @@
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTR8KKM9-eODPVkTWUsCbdSL68muApoFTps4foJFFoiTHI5mNdwDVwV1foA5J9QkZR7GKftqZQfYs5w/pub?output=csv";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate Verification</title>
 
-function parseCSV(strData, delimiter = ",") {
-    const pattern = new RegExp(
-        "(\\"
-        + delimiter
-        + "|\\r?\\n|\\r|^)"
-        + "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|"
-        + "([^\"\\"
-        + delimiter
-        + "\\r\\n]*))",
-        "gi"
-    );
-
-    const rows = [[]];
-    let matches;
-
-    while ((matches = pattern.exec(strData))) {
-        const matchedDelimiter = matches[1];
-
-        if (matchedDelimiter.length && matchedDelimiter !== delimiter) {
-            rows.push([]);
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
         }
 
-        let matchedValue;
-        if (matches[2]) {
-            matchedValue = matches[2].replace(/\"\"/g, "\"");
-        } else {
-            matchedValue = matches[3];
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
         }
 
-        rows[rows.length - 1].push(matchedValue);
-    }
-
-    return rows;
-}
-
-async function loadSheet() {
-    const response = await fetch(sheetURL);
-    const data = await response.text();
-    return parseCSV(data);
-}
-
-function normalizeHyphens(str) {
-    if (!str) return "";
-    return str.replace(/–|—/g, "-").trim();
-}
-
-function showModal(details) {
-    document.getElementById("certno").innerText = details.certno;
-    document.getElementById("participant").innerText = details.participant;
-    document.getElementById("company").innerText = details.company;
-    document.getElementById("course").innerText = details.course;
-    document.getElementById("coursedate").innerText = details.coursedate;
-    document.getElementById("expiry").innerText = details.expiry;
-
-    document.getElementById("resultModal").style.display = "block";
-}
-
-function closeModal() {
-    document.getElementById("resultModal").style.display = "none";
-}
-
-async function verifyCert() {
-    const certNo = normalizeHyphens(document.getElementById("certInput").value.trim());
-    if (!certNo) {
-        alert("Please enter a certificate number.");
-        return;
-    }
-
-    const rows = await loadSheet();
-    const headers = rows[0];
-
-    const certIndex = headers.indexOf("Certificate NO.");
-    const participantIndex = headers.indexOf("Participant Name");
-    const companyIndex = headers.indexOf("Company");
-    const courseIndex = headers.indexOf("Course Title");
-    const courseDateIndex = headers.indexOf("Course Date");
-    const expiryIndex = headers.indexOf("Expiry Date");
-
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const sheetCert = normalizeHyphens(row[certIndex]);
-
-        if (sheetCert === certNo) {
-            showModal({
-                certno: row[certIndex],
-                participant: row[participantIndex],
-                company: row[companyIndex],
-                course: row[courseIndex],
-                coursedate: row[courseDateIndex],
-                expiry: row[expiryIndex]
-            });
-            return;
+        .container h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
         }
-    }
 
-    alert("Certificate not found.");
-}
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Modal */
+        #resultModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 450px;
+            margin: 80px auto;
+            padding: 25px;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .close-btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .close-btn:hover {
+            background: #b52a36;
+        }
+
+        .detail {
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Certificate Verification</h2>
+
+    <input id="certInput" type="text" placeholder="Enter Certificate Number">
+    <button onclick="verifyCert()">Verify</button>
+</div>
+
+<!-- Modal -->
+<div id="resultModal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Certificate Details</h2>
+
+        <div class="detail"><span class="label">Certificate No:</span> <span id="certno"></span></div>
+        <div class="detail"><span class="label">Participant Name:</span> <span id="participant"></span></div>
+        <div class="detail"><span class="label">Company:</span> <span id="company"></span></div>
+        <div class="detail"><span class="label">Course Title:</span> <span id="course"></span></div>
+        <div class="detail"><span class="label">Course Date:</span> <span id="coursedate"></span></div>
+        <div class="detail"><span class="label">Expiry Date:</span> <span id="expiry"></span></div>
+
+        <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
